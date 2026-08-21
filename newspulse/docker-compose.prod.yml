@@ -1,0 +1,49 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: newspulse
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-newspulse}
+      POSTGRES_DB: newspulse
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    volumes:
+      - qdrant_data:/qdrant/storage
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    env_file: ./backend/.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://newspulse:${POSTGRES_PASSWORD:-newspulse}@postgres:5432/newspulse
+      DATABASE_URL_SYNC: postgresql://newspulse:${POSTGRES_PASSWORD:-newspulse}@postgres:5432/newspulse
+      REDIS_URL: redis://redis:6379/0
+      QDRANT_HOST: qdrant
+      QDRANT_PORT: 6333
+    depends_on:
+      - postgres
+      - redis
+      - qdrant
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  qdrant_data:
