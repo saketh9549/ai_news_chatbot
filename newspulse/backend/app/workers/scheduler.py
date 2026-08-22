@@ -19,34 +19,45 @@ async def _ingestion_worker():
     """Periodic worker loop that polls and indexes articles."""
     logger.info("Starting NewsPulse background ingestion worker (interval: %d min)", settings.default_poll_interval_min)
     
-    # Run an initial poll immediately upon startup
-    await asyncio.sleep(5)
+    # Run an initial poll after 60s so server startup & user queries are completely uninhibited
+    await asyncio.sleep(60)
     
     while _running:
         try:
             logger.info("Background ingestion cycle starting...")
             session_factory = get_sync_session_factory()
             
-            # Run in a threadpool to avoid blocking the async event loop with sync DB/HTTP operations
             def _run_cycle():
-                with session_factory() as session:
-                    # 1. RSS Feed polling
-                    new_articles = poll_all_feeds(session)
-                    
-                    # 2. NewsAPI Global Headlines polling across categories
-                    if settings.newsapi_key:
-                        try:
-                            from app.ingestion.newsapi_client import fetch_top_headlines, ingest_newsapi_articles
-                            for cat in ["technology", "business", "science", "general"]:
-                                raw = fetch_top_headlines(category=cat, limit=15)
-                                if raw:
-                                    ingest_newsapi_articles(session, raw, default_category=cat)
-                        except Exception as ne:
-                            logger.warning("NewsAPI scheduler polling error: %s", ne)
+                new_articles = 0
+                new_chunks = 0
+                
+                # 1. RSS Feed polling
+                try:
+                    with session_factory() as s1:
+                        new_articles = poll_all_feeds(s1)
+                except Exception as e1:
+                    logger.warning("Scheduler RSS polling error: %s", e1)
 
-                    # 3. Index any unindexed articles
-                    new_chunks = index_unindexed_articles(session)
-                    return new_articles, new_chunks
+                # 2. NewsAPI Global Headlines polling
+                if settings.newsapi_key:
+                    try:
+                        from app.ingestion.newsapi_client import fetch_top_headlines, ingest_newsapi_articles
+                        for cat in ["technology", "business", "science", "general"]:
+                            raw = fetch_top_headlines(category=cat, limit=10)
+                            if raw:
+                                with session_factory() as s2:
+                                    ingest_newsapi_articles(s2, raw, default_category=cat)
+                    except Exception as ne:
+                        logger.warning("NewsAPI scheduler polling error: %s", ne)
+
+                # 3. Index any unindexed articles
+                try:
+                    with session_factory() as s3:
+                        new_chunks = index_unindexed_articles(s3, limit=30)
+                except Exception as e3:
+                    logger.warning("Scheduler indexing error: %s", e3)
+
+                return new_articles, new_chunks
 
             new_articles, new_chunks = await asyncio.to_thread(_run_cycle)
             logger.info("Background ingestion completed: %d new articles, %d chunks indexed", new_articles, new_chunks)

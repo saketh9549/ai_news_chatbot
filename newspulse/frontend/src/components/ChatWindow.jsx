@@ -1,28 +1,23 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {
   Send,
   Sparkles,
-  ArrowRight,
-  Radio,
-  SlidersHorizontal,
   Bot,
-  RefreshCw,
-  Search,
-  ExternalLink,
-  Layers,
   Square,
-  Octagon,
+  ArrowRight,
+  Layers,
+  RefreshCw,
+  SlidersHorizontal,
 } from 'lucide-react'
-import { sendMessageStream, getChatHistory } from '../api/client'
 import MessageBubble from './MessageBubble'
+import { sendMessageStream, getChatHistory } from '../api/client'
 
 const CATEGORIES = [
   { id: 'all', label: 'All Intel' },
-  { id: 'general', label: 'General' },
   { id: 'technology', label: 'Tech & AI' },
-  { id: 'world', label: 'World' },
-  { id: 'business', label: 'Markets' },
-  { id: 'science', label: 'Science' },
+  { id: 'business', label: 'Markets & Finance' },
+  { id: 'science', label: 'Science & Health' },
+  { id: 'world', label: 'Global News' },
 ]
 
 const STARTER_PROMPTS = [
@@ -264,7 +259,37 @@ export default function ChatWindow({
   }
 
   return (
-    <div className="flex-1 flex-col h-full bg-slate-50 relative overflow-hidden flex">
+    <div className="flex-1 flex-col h-full bg-white relative overflow-hidden flex">
+      {/* Pinned Top Sub-header Channel Switcher */}
+      <div className="bg-white/95 backdrop-blur-md border-b border-slate-100 px-4 py-2.5 flex items-center justify-between gap-3 shrink-0 z-10 select-none shadow-2xs">
+        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-0.5 max-w-full">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-1 hidden sm:inline">
+            Active Channel:
+          </span>
+          {CATEGORIES.map((cat) => {
+            const isSelected = activeCategory === cat.id
+            return (
+              <button
+                key={cat.id}
+                onClick={() => onSelectCategory(cat.id)}
+                className={`text-xs px-3 py-1 rounded-full font-medium transition-all cursor-pointer whitespace-nowrap ${
+                  isSelected
+                    ? 'bg-blue-600 text-white shadow-xs font-semibold shadow-blue-500/20'
+                    : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200/60'
+                }`}
+              >
+                {cat.label}
+              </button>
+            )
+          })}
+        </div>
+
+        <div className="hidden md:flex items-center gap-1.5 text-[11px] text-slate-500 shrink-0 font-medium">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span>Verified Hybrid Search Active</span>
+        </div>
+      </div>
+
       {/* Scrollable Conversation Container */}
       <div className="flex-1 overflow-y-auto px-4 py-6 md:px-8">
         <div className="max-w-3xl mx-auto w-full">
@@ -304,7 +329,7 @@ export default function ChatWindow({
                       onSelectCategory(item.category)
                       handleSend(item.query)
                     }}
-                    className="p-4 bg-white hover:bg-gradient-to-br hover:from-white hover:to-blue-50/50 border border-slate-200/90 hover:border-blue-400/80 rounded-2xl shadow-2xs hover:shadow-md transition-all group flex flex-col justify-between"
+                    className="p-4 bg-white hover:bg-gradient-to-br hover:from-white hover:to-blue-50/50 border border-slate-200/90 hover:border-blue-400/80 rounded-2xl shadow-2xs hover:shadow-md transition-all group flex flex-col justify-between cursor-pointer"
                   >
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
@@ -329,8 +354,10 @@ export default function ChatWindow({
               <MessageBubble
                 key={i}
                 message={msg}
+                isLatest={i === messages.length - 1}
                 isGenerating={isGenerating && i === messages.length - 1}
                 onOpenSources={onOpenSources}
+                onSendPrompt={(prompt) => handleSend(prompt)}
               />
             ))}
 
@@ -357,7 +384,7 @@ export default function ChatWindow({
       </div>
 
       {/* Floating AI Command & Input Bar */}
-      <div className="p-4 bg-gradient-to-t from-slate-100 via-slate-50 to-transparent">
+      <div className="p-4 bg-gradient-to-t from-white via-white/95 to-transparent">
         <div className="max-w-3xl mx-auto w-full">
           {/* Floating Stop Generating Action Pill */}
           {isGenerating && (
@@ -374,35 +401,15 @@ export default function ChatWindow({
             </div>
           )}
 
-          {/* Category Channel Filter Pills */}
-          <div className="flex items-center gap-1.5 mb-2.5 overflow-x-auto pb-1 scrollbar-none">
-            {CATEGORIES.map((cat) => {
-              const isSelected = activeCategory === cat.id
-              return (
-                <button
-                  key={cat.id}
-                  onClick={() => onSelectCategory(cat.id)}
-                  className={`text-xs px-3 py-1 rounded-full font-medium transition-all ${
-                    isSelected
-                      ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/20 font-semibold'
-                      : 'bg-white hover:bg-slate-200 text-slate-600 border border-slate-200/80 shadow-2xs'
-                  }`}
-                >
-                  {cat.label}
-                </button>
-              )
-            })}
-          </div>
-
           {/* Input Box */}
-          <div className="bg-white border border-slate-300 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 rounded-2xl shadow-lg shadow-slate-200/60 p-2 transition-all flex items-end gap-2">
+          <div className="bg-white border border-slate-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 rounded-2xl shadow-lg shadow-slate-100 p-2 transition-all flex items-end gap-2">
             <textarea
               ref={textareaRef}
               rows={1}
               value={input}
               onChange={handleTextareaInput}
               onKeyDown={handleKeyDown}
-              placeholder="Ask anything about latest news... (Enter to send, Shift+Enter for newline)"
+              placeholder={`Ask about ${activeCategory === 'all' ? 'latest breaking news' : activeCategory + ' news'}... (Enter to send)`}
               className="flex-1 max-h-36 py-2 px-3 text-sm text-slate-900 placeholder-slate-400 bg-transparent resize-none focus:outline-none leading-relaxed"
             />
 
@@ -429,8 +436,8 @@ export default function ChatWindow({
           </div>
 
           {/* Safe Information Footnote */}
-          <div className="flex items-center justify-between text-[11px] text-slate-400 px-2 mt-1.5">
-            <span>Grounding: Google Gemini 2.5 Flash • Vector Store: Qdrant Cloud</span>
+          <div className="flex items-center justify-between text-[11px] text-slate-400 px-2 mt-2">
+            <span>AI_News_Chatbot powered by Gemini, NewsClientApi</span>
             <button
               onClick={onOpenSources}
               className="hover:text-blue-600 transition-colors flex items-center gap-1 font-medium cursor-pointer"

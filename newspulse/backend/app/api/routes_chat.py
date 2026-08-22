@@ -124,30 +124,32 @@ def chat(request: ChatRequest, session: Session = Depends(get_sync_session)):
 
 
 @router.post("/stream")
-def chat_stream(request: ChatRequest, session: Session = Depends(get_sync_session)):
+def chat_stream(request: ChatRequest):
     """Stream RAG response token by token via Server-Sent Events (SSE)."""
-    # Get or create chat session
-    if request.session_id:
-        chat_session = session.execute(
-            select(ChatSession).where(ChatSession.id == request.session_id)
-        ).scalar_one_or_none()
-        if not chat_session:
-            raise HTTPException(status_code=404, detail="Session not found")
-    else:
-        chat_session = ChatSession()
-        session.add(chat_session)
-        session.flush()
+    session_factory = get_sync_session_factory()
+    with session_factory() as session:
+        # Get or create chat session
+        if request.session_id:
+            chat_session = session.execute(
+                select(ChatSession).where(ChatSession.id == request.session_id)
+            ).scalar_one_or_none()
+            if not chat_session:
+                raise HTTPException(status_code=404, detail="Session not found")
+        else:
+            chat_session = ChatSession()
+            session.add(chat_session)
+            session.flush()
 
-    session_id_str = str(chat_session.id)
+        session_id_str = str(chat_session.id)
 
-    # Store user message
-    user_msg = ChatMessage(
-        session_id=chat_session.id,
-        role="user",
-        content=request.query,
-    )
-    session.add(user_msg)
-    session.commit()
+        # Store user message
+        user_msg = ChatMessage(
+            session_id=chat_session.id,
+            role="user",
+            content=request.query,
+        )
+        session.add(user_msg)
+        session.commit()
 
     def event_generator():
         # First send session_id immediately so client is connected in < 10ms

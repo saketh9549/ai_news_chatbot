@@ -13,10 +13,9 @@ from app.middleware.rate_limit import RateLimitMiddleware
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    from app.db.models import Base
     from app.db.session import get_sync_engine
     from app.workers.scheduler import start_scheduler, stop_scheduler
-    Base.metadata.create_all(get_sync_engine())
+    get_sync_engine()
     start_scheduler()
     try:
         yield

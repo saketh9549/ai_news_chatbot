@@ -75,39 +75,39 @@ export default function Sidebar({
   }
 
   return (
-    <aside className="w-68 bg-slate-900 text-slate-200 h-full flex flex-col border-r border-slate-800 shrink-0 select-none z-30 transition-all">
+    <aside className="w-64 min-w-[16rem] max-w-[16rem] bg-slate-900 text-slate-200 h-full flex flex-col border-r border-slate-800 shrink-0 select-none z-30 overflow-hidden">
       {/* Brand Header */}
-      <div className="p-4 border-b border-slate-800 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white font-black text-sm shadow-md shadow-cyan-500/20">
+      <div className="p-4 border-b border-slate-800 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white font-black text-sm shadow-md shadow-cyan-500/20 shrink-0">
             NP
           </div>
-          <div>
-            <h1 className="text-sm font-bold text-white tracking-tight leading-none">NewsPulse</h1>
-            <span className="text-[10px] text-cyan-400 font-medium">Grounded RAG Intelligence</span>
+          <div className="min-w-0">
+            <h1 className="text-sm font-bold text-white tracking-tight leading-none truncate">NewsPulse</h1>
+            <span className="text-[10px] text-cyan-400 font-medium truncate block">Grounded Intelligence</span>
           </div>
         </div>
         <button
           onClick={onToggle}
-          className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors md:hidden"
+          className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors md:hidden shrink-0 cursor-pointer"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
       </div>
 
       {/* New Chat Button */}
-      <div className="p-3">
+      <div className="p-3 shrink-0">
         <button
           onClick={onNewChat}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-semibold rounded-xl shadow-md shadow-blue-600/20 transition-all"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-semibold rounded-xl shadow-md shadow-blue-600/20 transition-all cursor-pointer"
         >
-          <Plus className="w-4 h-4" />
-          <span>New Investigation</span>
+          <Plus className="w-4 h-4 shrink-0" />
+          <span className="truncate">New Investigation</span>
         </button>
       </div>
 
       {/* Topic Channels */}
-      <div className="px-3 py-2 border-b border-slate-800/80">
+      <div className="px-3 py-2 border-b border-slate-800/80 shrink-0">
         <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 mb-1.5 block">
           Channels
         </span>
@@ -119,14 +119,14 @@ export default function Sidebar({
               <button
                 key={item.id}
                 onClick={() => onSelectCategory(item.id)}
-                className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                   isSelected
                     ? 'bg-slate-800 text-cyan-400 font-semibold shadow-2xs border border-slate-700/50'
                     : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200'
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 ${isSelected ? 'text-cyan-400' : 'text-slate-400'}`} />
-                <span>{item.label}</span>
+                <Icon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-cyan-400' : 'text-slate-400'}`} />
+                <span className="truncate">{item.label}</span>
               </button>
             )
           })}
@@ -134,15 +134,15 @@ export default function Sidebar({
       </div>
 
       {/* History Search & Session List */}
-      <div className="flex-1 flex flex-col min-h-0 px-3 py-3">
-        <div className="flex items-center justify-between mb-2 px-1">
+      <div className="flex-1 flex flex-col min-h-0 px-3 py-3 overflow-hidden">
+        <div className="flex items-center justify-between mb-2 px-1 shrink-0">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
             Recent Threads ({sessions.length})
           </span>
         </div>
 
         {sessions.length > 5 && (
-          <div className="relative mb-2">
+          <div className="relative mb-2 shrink-0">
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
@@ -161,19 +161,20 @@ export default function Sidebar({
               <div
                 key={s.id}
                 onClick={() => onSelectSession(s.id)}
-                className={`group flex items-center justify-between gap-2 px-2.5 py-2 rounded-xl text-xs cursor-pointer transition-all ${
+                className={`group flex items-center justify-between gap-1.5 px-2.5 py-2 rounded-xl text-xs cursor-pointer transition-all w-full min-w-0 overflow-hidden ${
                   isActive
                     ? 'bg-blue-600/20 text-white border border-blue-500/30'
                     : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
                 }`}
+                title={s.first_query}
               >
-                <div className="flex items-center gap-2 min-w-0">
+                <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
                   <MessageSquare className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-cyan-400' : 'text-slate-400'}`} />
-                  <span className="truncate text-xs font-normal">{s.first_query}</span>
+                  <span className="truncate text-xs font-normal block max-w-full">{s.first_query}</span>
                 </div>
                 <button
                   onClick={(e) => handleDelete(e, s.id)}
-                  className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-400 transition-opacity"
+                  className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-400 transition-opacity shrink-0 cursor-pointer"
                   title="Delete chat"
                 >
                   <Trash2 className="w-3 h-3" />
