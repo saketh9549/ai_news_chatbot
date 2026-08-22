@@ -126,6 +126,12 @@ def hybrid_search(
         dense_results = f_dense.result()
         sparse_results = f_sparse.result()
 
+    # Enforce strict category matching if category_filter is set
+    if category_filter and category_filter.lower() != "all":
+        target_cat = category_filter.lower()
+        dense_results = [r for r in dense_results if r.payload and r.payload.get("category", "").lower() == target_cat]
+        sparse_results = [r for r in sparse_results if r.payload and r.payload.get("category", "").lower() == target_cat]
+
     # Build ranked lists for RRF
     dense_ranked = [(str(r.id), r.score) for r in dense_results]
     sparse_ranked = [(str(r.id), r.score) for r in sparse_results]
